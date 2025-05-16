@@ -1,21 +1,47 @@
-import './App.css'
-import {Routes, Route} from 'react-router-dom'
-import Login from './component/Login'
-import Dashboard from './component/Dashboard'
-import Register from './component/Register'
+import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Navbar from './components/layout/Navbar';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import CreateMeme from './pages/CreateMeme';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
-
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<Login/>}/>
-        <Route path='/dashboard' element={<Dashboard/>}/>
-        <Route path='/register' element={<Register/>}/>
-        <Route path="*" element={<div> 404 - Not Found</div>} />
-      </Routes>
-    </>
-  )
+    <AuthProvider>
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/create-meme"
+              element={
+                <PrivateRoute>
+                  <CreateMeme />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </div>
+      </div>
+      <ToastContainer position="bottom-right" />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

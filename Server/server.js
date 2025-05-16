@@ -1,23 +1,41 @@
-import express from 'express'
-import cors from 'cors'
-import 'dotenv/config'
-import cookieParser  from 'cookie-parser'
-import  connectDB from './config/mongodb.js'
-import authRous from './routes/authRouts.js'
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+import memeRoutes from './routes/memeRoutes.js';
 
-const app = express()
-const port = process.env.PORT || 4000
-connectDB()
-app.use(express.json())
-app.use(cookieParser())
-app.use(cors({credentials:true}))
+// Debug env variables
+console.log('MongoDB URI:', process.env.MONGO_URI ? 'Exists' : 'Missing!');
 
+const app = express();
 
-app.get("/",(req,res)=>{
- res.json()
-})
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-app.use("/api/auth" , authRous)
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/memes', memeRoutes);
 
-app.listen(port, ()=>{console.log(`Server Started on ${port}`)
-})
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Connect to database and start server
+connectDB();
+
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// Handle shutdown
+process.on('SIGINT', () => {
+  console.log('Shutting down gracefully...');
+  server.close(() => {
+    process.exit(0);
+  });
+});
