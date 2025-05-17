@@ -7,7 +7,7 @@ import { formatDate } from '../utils/helpers';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
 import { Link as RouterLink } from 'react-router-dom';
-
+const apiUrl = import.meta.env.VITE_API_URL;
 const MemeDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -160,7 +160,7 @@ const MemeDetail = () => {
       </Flex>
 
       <Box mb={6} borderRadius="md" overflow="hidden" boxShadow="lg">
-        <Image src={meme.imageUrl} alt={meme.title} w="100%" />
+        <Image src={`${apiUrl}${meme.imageUrl}`} alt={meme.title} w="100%" />
       </Box>
 
       <Flex gap={4} mb={6}>

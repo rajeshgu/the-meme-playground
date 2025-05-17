@@ -8,7 +8,7 @@ import { useToast } from '@chakra-ui/react';
 const VoteButtons = ({ meme }) => {
   const { user } = useAuth();
   const toast = useToast();
-  const [votes, setVotes] = useState(meme.votes || 0);
+  const [votes, setVotes] = useState(meme?.upvotes?.length || 0);
   const [userVote, setUserVote] = useState(meme.userVote || 0);
   const [isLoading, setIsLoading] = useState(false);
 

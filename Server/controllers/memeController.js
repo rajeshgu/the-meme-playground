@@ -26,6 +26,7 @@ const upload = multer({
 
 // Create a new meme with image upload
 const createMeme = async (req, res) => {
+  console.log('Creating meme with data:', req.body);
   upload(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ error: err.message });

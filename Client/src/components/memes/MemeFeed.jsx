@@ -3,7 +3,7 @@ import MemeCard from './MemeCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 const MemeFeed = ({ memes, isLoading }) => {
-  if (isLoading) return <LoadingSpinner />;
+  // if (isLoading) return <LoadingSpinner />;
 
   // Ensure memes is an array before attempting to map
   if (!Array.isArray(memes)) {

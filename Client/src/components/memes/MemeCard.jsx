@@ -3,8 +3,11 @@ import { FaArrowUp, FaArrowDown, FaComment, FaShare } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import VoteButtons from './VoteButtons';
 import { formatDate } from '../../utils/helpers';
+const apiUrl = import.meta.env.VITE_API_URL;
+
 
 const MemeCard = ({ meme }) => {
+  console.log('MemeCard-->', apiUrl);
   return (
     <Box
       borderWidth="1px"
@@ -24,7 +27,7 @@ const MemeCard = ({ meme }) => {
         <Heading size="md" mb={2}>
           {meme.title}
         </Heading>
-        <Image src={meme.imageUrl} alt={meme.title} w="100%" borderRadius="md" />
+        <Image src={`${apiUrl}${meme.imageUrl}`} alt={meme.title} w="100%" borderRadius="md" />
       </Link>
 
       <Flex mt={3} wrap="wrap" gap={2}>

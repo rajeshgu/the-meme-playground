@@ -21,8 +21,8 @@ const useMemes = (params = {}) => {
     };
 
     fetchMemes();
-  }, [params]);
-
+  }, []);
+//params
   return { memes, isLoading, error };
 };
 

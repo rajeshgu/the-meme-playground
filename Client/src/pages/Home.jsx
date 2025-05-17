@@ -61,16 +61,16 @@ const Home = () => {
 
         <TabPanels>
           <TabPanel p={0}>
-            <MemeFeed memes={memes} isLoading={isLoading} />
+            <MemeFeed memes={memes?.memes} isLoading={isLoading} />
           </TabPanel>
           <TabPanel p={0}>
-            <MemeFeed memes={memes} isLoading={isLoading} />
+            <MemeFeed memes={memes?.memes} isLoading={isLoading} />
           </TabPanel>
           <TabPanel p={0}>
-            <MemeFeed memes={memes} isLoading={isLoading} />
+            <MemeFeed memes={memes?.memes} isLoading={isLoading} />
           </TabPanel>
           <TabPanel p={0}>
-            <MemeFeed memes={memes} isLoading={isLoading} />
+            <MemeFeed memes={memes?.memes} isLoading={isLoading} />
           </TabPanel>
         </TabPanels>
       </Tabs>

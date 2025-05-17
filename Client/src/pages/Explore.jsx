@@ -11,7 +11,9 @@ const Explore = () => {
     sort: sortBy === 'new' ? '-createdAt' : '-votes',
   });
 
-  const filteredMemes = memes.filter((meme) =>
+ 
+
+  const filteredMemes =Array.isArray(memes?.memes)&& memes?.memes?.filter((meme) =>
     meme.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     meme.tags?.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );

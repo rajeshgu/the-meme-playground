@@ -23,9 +23,11 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  const login = (userData, token) => {
-    localStorage.setItem('token', token);
-    setUser(userData);
+  const login = (userData) => {
+    console.log('Login userData:', userData);
+
+    localStorage.setItem('token', userData?.token);
+    setUser(userData?.user);
   };
 
   const logout = async () => {
