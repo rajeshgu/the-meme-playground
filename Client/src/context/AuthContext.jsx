@@ -1,64 +1,41 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import authAPI from '../api/auth';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { getCurrentUser } from '../api/auth';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
-  // Check for token on initial load
+  const fetchUser = async () => {
+    setLoading(true);
+    try {
+      const userData = await getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const verifyToken = async () => {
-      if (token) {
-        try {
-          const userData = await authAPI.getMe(token);
-          setUser(userData);
-        } catch (error) {
-          logout();
-        }
-      }
-    };
-    verifyToken();
-  }, [token]);
+    fetchUser();
+  }, []);
 
-  const login = async (credentials) => {
-    try {
-      const { user, token } = await authAPI.login(credentials);
-      localStorage.setItem('token', token);
-      setToken(token);
-      setUser(user);
-      navigate('/dashboard');
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+  const login = (userData, token) => {
+    localStorage.setItem('token', token);
+    setUser(userData);
   };
 
-  const register = async (userData) => {
-    try {
-      const { user, token } = await authAPI.register(userData);
-      localStorage.setItem('token', token);
-      setToken(token);
-      setUser(user);
-      navigate('/dashboard');
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  };
-
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem('token');
-    setToken(null);
     setUser(null);
-    navigate('/login');
+    await getCurrentUser(); // This will clear any invalid token
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

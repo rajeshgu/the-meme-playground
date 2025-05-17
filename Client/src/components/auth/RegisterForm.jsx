@@ -1,185 +1,143 @@
 import { useState } from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
+import { useNavigate } from 'react-router-dom';
+import { register as apiRegister } from '../../api/auth';
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Stack,
+  useToast,
+  Text as ChakraText
+} from '@chakra-ui/react';
+import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 
-const RegisterForm = ({ onSubmit, isLoading }) => {
+const RegisterForm = () => {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const toast = useToast();
 
-  const validationSchema = Yup.object({
-    username: Yup.string()
-      .min(3, 'Must be at least 3 characters')
-      .max(20, 'Must be 20 characters or less')
-      .required('Required'),
-    email: Yup.string()
-      .email('Invalid email address')
-      .required('Required'),
-    password: Yup.string()
-      .min(6, 'Must be at least 6 characters')
-      .required('Required'),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], 'Passwords must match')
-      .required('Required')
-  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
-  const formik = useFormik({
-    initialValues: {
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
-    },
-    validationSchema,
-    onSubmit: values => {
-      onSubmit({
-        username: values.username,
-        email: values.email,
-        password: values.password
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: 'Passwords do not match',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
       });
+      return;
     }
-  });
+
+    setIsLoading(true);
+
+    try {
+      await apiRegister({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+      toast({
+        title: 'Registration successful',
+        description: 'You can now log in to your account',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: 'Registration failed',
+        description: error.response?.data?.message || 'Something went wrong',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-4">
-      {/* Username Field */}
-      <div>
-        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-          Username
-        </label>
-        <input
-          id="username"
-          name="username"
-          type="text"
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          value={formik.values.username}
-          className={`mt-1 block w-full rounded-md border shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 ${
-            formik.touched.username && formik.errors.username
-              ? 'border-red-500'
-              : 'border-gray-300'
-          }`}
-        />
-        {formik.touched.username && formik.errors.username && (
-          <div className="text-red-500 text-xs mt-1">{formik.errors.username}</div>
-        )}
-      </div>
+    <Box as="form" onSubmit={handleSubmit}>
+      <Stack spacing={4}>
+        <FormControl id="username" isRequired>
+          <FormLabel>Username</FormLabel>
+          <Input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+          />
+        </FormControl>
 
-      {/* Email Field */}
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          value={formik.values.email}
-          className={`mt-1 block w-full rounded-md border shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 ${
-            formik.touched.email && formik.errors.email
-              ? 'border-red-500'
-              : 'border-gray-300'
-          }`}
-        />
-        {formik.touched.email && formik.errors.email && (
-          <div className="text-red-500 text-xs mt-1">{formik.errors.email}</div>
-        )}
-      </div>
+        <FormControl id="email" isRequired>
+          <FormLabel>Email address</FormLabel>
+          <Input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+        </FormControl>
 
-      {/* Password Field */}
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
-        </label>
-        <div className="relative mt-1">
-          <input
-            id="password"
-            name="password"
+        <FormControl id="password" isRequired>
+          <FormLabel>Password</FormLabel>
+          <InputGroup>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <InputRightElement h="full">
+              <Button
+                variant="ghost"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+              </Button>
+            </InputRightElement>
+          </InputGroup>
+        </FormControl>
+
+        <FormControl id="confirmPassword" isRequired>
+          <FormLabel>Confirm Password</FormLabel>
+          <Input
             type={showPassword ? 'text' : 'password'}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.password}
-            className={`block w-full rounded-md border shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 ${
-              formik.touched.password && formik.errors.password
-                ? 'border-red-500'
-                : 'border-gray-300'
-            }`}
-          />
-          <button
-            type="button"
-            className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? (
-              <span className="text-gray-500">🙈</span>
-            ) : (
-              <span className="text-gray-500">👁️</span>
-            )}
-          </button>
-        </div>
-        {formik.touched.password && formik.errors.password && (
-          <div className="text-red-500 text-xs mt-1">{formik.errors.password}</div>
-        )}
-      </div>
-
-      {/* Confirm Password Field */}
-      <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-          Confirm Password
-        </label>
-        <div className="relative mt-1">
-          <input
-            id="confirmPassword"
             name="confirmPassword"
-            type={showConfirmPassword ? 'text' : 'password'}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.confirmPassword}
-            className={`block w-full rounded-md border shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 ${
-              formik.touched.confirmPassword && formik.errors.confirmPassword
-                ? 'border-red-500'
-                : 'border-gray-300'
-            }`}
+            value={formData.confirmPassword}
+            onChange={handleChange}
           />
-          <button
-            type="button"
-            className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            {showConfirmPassword ? (
-              <span className="text-gray-500">🙈</span>
-            ) : (
-              <span className="text-gray-500">👁️</span>
-            )}
-          </button>
-        </div>
-        {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-          <div className="text-red-500 text-xs mt-1">{formik.errors.confirmPassword}</div>
-        )}
-      </div>
+        </FormControl>
 
-      {/* Submit Button */}
-      <div>
-        <button
+        <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          colorScheme="purple"
+          isLoading={isLoading}
+          loadingText="Registering..."
+          width="full"
         >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Registering...
-            </>
-          ) : (
-            'Register'
-          )}
-        </button>
-      </div>
-    </form>
+          Register
+        </Button>
+      </Stack>
+    </Box>
   );
 };
 

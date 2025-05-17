@@ -1,63 +1,57 @@
+import { Box, Heading, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import memesAPI from '../api/memes';
-
-import MemeList from '../components/meme/MemeList';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { getAllMemes } from '../api/memes';
+import MemeFeed from '../components/memes/MemeFeed';
+import UserStats from '../components/analytics/UserStats';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [memes, setMemes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [myMemes, setMyMemes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchMemes = async () => {
+    const fetchMyMemes = async () => {
+      if (!user) return;
+      setIsLoading(true);
       try {
-        const data = await memesAPI.getAllMemes();
-        setMemes(data);
+        const data = await getAllMemes({ userId: user._id });
+        console.log('Data from getAllMemes:', data); // Debugging log
+        setMyMemes(Array.isArray(data) ? data : []); // Ensure it's always an array
       } catch (error) {
-        console.error('Failed to fetch memes:', error);
+        console.error('Failed to fetch user memes:', error);
+        // Consider setting to an empty array here as well, depending on desired UI
+        // setMyMemes([]);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-    fetchMemes();
-  }, []);
 
-  const handleMemeVote = () => {
-    // Refetch or update local state
-    fetchMemes();
-  };
-
-  if (loading) {
-    return <div className="text-center py-10">Loading memes...</div>;
-  }
+    fetchMyMemes();
+  }, [user]);
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Your Meme Dashboard</h1>
-        <button
-          onClick={() => navigate('/create-meme')}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-600"
-        >
-          <PlusIcon className="h-5 w-5" />
-          Create Meme
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {memes.map(meme => (
-          <MemeCard 
-            key={meme._id} 
-            meme={meme} 
-            onVote={handleMemeVote}
-          />
-        ))}
-      </div>
-    </div>
+    <Box>
+      <Heading mb={6} size="xl">
+        My Dashboard
+      </Heading>
+
+      <Tabs variant="enclosed" isFitted>
+        <TabList mb={4}>
+          <Tab>My Memes</Tab>
+          <Tab>Stats</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel p={0}>
+            <MemeFeed memes={myMemes} isLoading={isLoading} />
+          </TabPanel>
+          <TabPanel>
+            <UserStats memes={myMemes} />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Box>
   );
 };
 

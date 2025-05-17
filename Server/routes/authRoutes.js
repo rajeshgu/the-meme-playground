@@ -1,4 +1,5 @@
 import express from 'express';
+import { auth } from '../middleware/auth.js'; // Now using named import
 import {
   register,
   login,
@@ -14,10 +15,10 @@ router.post('/register', register);
 // Login user
 router.post('/login', login);
 
-// Get current user
-router.get('/current', currentUser);
+// Get current user (protected route)
+router.get('/current', auth, currentUser);
 
 // Logout user
-router.post('/logout', logout);
+router.post('/logout', auth, logout);
 
 export default router;

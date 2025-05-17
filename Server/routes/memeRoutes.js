@@ -12,25 +12,25 @@ import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Create a new meme
+// Create a meme (auth required)
 router.post('/', auth, createMeme);
 
-// Get all memes
+// Get all memes (public)
 router.get('/', getAllMemes);
 
-// Get a single meme
+// Get single meme (public)
 router.get('/:id', getMeme);
 
-// Update a meme
+// Update meme (auth required, creator only)
 router.put('/:id', auth, updateMeme);
 
-// Delete a meme
+// Delete meme (auth required, creator only)
 router.delete('/:id', auth, deleteMeme);
 
-// Upvote a meme
+// Upvote meme (auth required)
 router.post('/:id/upvote', auth, upvoteMeme);
 
-// Downvote a meme
+// Downvote meme (auth required)
 router.post('/:id/downvote', auth, downvoteMeme);
 
 export default router;
