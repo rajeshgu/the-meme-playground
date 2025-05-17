@@ -11,7 +11,7 @@ const Footer = () => {
         mx="auto"
         px={4}
       >
-        <Text mb={{ base: 2, md: 0 }}>© 2023 MemeHub. All rights reserved.</Text>
+        <Text mb={{ base: 2, md: 0 }}>© 2025 MemeHub. All rights reserved.</Text>
         <Flex gap={4}>
           <Link href="/about" _hover={{ textDecoration: 'underline' }}>
             About

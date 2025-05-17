@@ -43,12 +43,16 @@ const Dashboard = () => {
         </TabList>
 
         <TabPanels>
-          <TabPanel p={0}>
-            <MemeFeed memes={myMemes} isLoading={isLoading} />
-          </TabPanel>
-          <TabPanel>
-            <UserStats memes={myMemes} />
-          </TabPanel>
+         <TabPanel p={0}>
+  <MemeFeed
+    memes={myMemes}
+    isLoading={isLoading}
+    renderItem={(meme) => {
+      console.log('Meme in Dashboard Feed:', meme);
+      return <MemeCard meme={meme} />;
+    }}
+  />
+</TabPanel>
         </TabPanels>
       </Tabs>
     </Box>
