@@ -20,7 +20,7 @@ import {
   Heading
 } from '@chakra-ui/react';
 
-const CreateMeme = () => {
+export const CreateMeme = () => {
   const { user } = useAuth();
   const toast = useToast();
   const fileInputRef = useRef(null);
@@ -66,7 +66,7 @@ const CreateMeme = () => {
     }
 
     setMemeData({ ...memeData, image: file });
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onload = () => {
@@ -77,7 +77,7 @@ const CreateMeme = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user) {
       toast({
         title: 'Authentication required',
@@ -113,7 +113,11 @@ const CreateMeme = () => {
       formData.append('textColor', memeData.textColor);
       formData.append('tags', memeData.tags);
 
-      await createMeme(formData);
+      // Get the token from the AuthContext
+      const token = localStorage.getItem('authToken'); // Assuming you store it in localStorage after login
+
+      // Include the token in the Authorization header
+      await createMeme(formData, token); // Pass the token to the createMeme function
 
       toast({
         title: 'Meme created!',
