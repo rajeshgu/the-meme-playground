@@ -1,61 +1,103 @@
-import { Box, Heading, Flex, Link as ChakraLink, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Heading,
+  Flex,
+  Link as ChakraLink,
+  Text,
+  useColorModeValue,
+  Divider,
+  VStack,
+  Icon,
+} from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
+import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import LoginForm from '../components/auth/LoginForm';
-import AuthModal from '../components/auth/AuthModal';
-import { useState } from 'react';
 
 const Login = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(0); // 0 for login, 1 for register
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('gray.600', 'gray.300');
+  const accentColor = useColorModeValue('purple.500', 'purple.300');
+  const shadow = useColorModeValue('md', 'dark-lg');
 
   return (
-    <Box maxW="md" mx="auto" mt={10} p={6}>
-      <Heading mb={6} textAlign="center">
-        Welcome Back
-      </Heading>
-      
-      <LoginForm />
-      
-      <Flex justify="center" mt={4}>
-        <Text>
-          Don't have an account?{' '}
-          <ChakraLink 
-            as={RouterLink} 
-            to="/register" 
-            color="purple.500"
-            fontWeight="semibold"
-          >
-            Sign up
-          </ChakraLink>
+    <Flex align="center" justify="center" minH="100vh" bg={useColorModeValue('gray.50', 'gray.900')} px={4}>
+      <Box
+        w="100%"
+        maxW="400px"
+        bg={cardBg}
+        p={8}
+        borderRadius="lg"
+        boxShadow={shadow}
+      >
+        <Heading mb={2} size="lg" textAlign="center" color={accentColor}>
+          Welcome Back 👋
+        </Heading>
+        <Text fontSize="sm" color={textColor} textAlign="center" mb={6}>
+          Log in to access your MemeHub dashboard
         </Text>
-      </Flex>
 
-      {/* Alternative using modal (if preferred) */}
-      {/* 
-      <Flex justify="center" mt={4}>
-        <Text>
-          Don't have an account?{' '}
-          <ChakraLink 
-            onClick={() => {
-              setActiveTab(1);
-              setIsModalOpen(true);
-            }}
-            color="purple.500"
-            fontWeight="semibold"
-            cursor="pointer"
+        {/* Login Form */}
+        <LoginForm />
+
+        {/* Divider */}
+        <Flex align="center" my={4}>
+          <Divider flex="1" />
+          <Text px={2} fontSize="sm" color={textColor}>
+            or
+          </Text>
+          <Divider flex="1" />
+        </Flex>
+
+        {/* Social Login Icons (optional placeholders) */}
+        <VStack spacing={3}>
+          <Flex
+            as="button"
+            align="center"
+            justify="center"
+            w="100%"
+            p={2}
+            border="1px solid"
+            borderColor="gray.300"
+            borderRadius="md"
+            _hover={{ bg: 'gray.100' }}
           >
-            Sign up
-          </ChakraLink>
-        </Text>
-      </Flex>
+            <Icon as={FaGoogle} mr={2} />
+            <Text fontSize="sm">Continue with Google</Text>
+          </Flex>
 
-      <AuthModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        defaultTab={activeTab}
-      />
-      */}
-    </Box>
+          <Flex
+            as="button"
+            align="center"
+            justify="center"
+            w="100%"
+            p={2}
+            border="1px solid"
+            borderColor="gray.300"
+            borderRadius="md"
+            _hover={{ bg: 'gray.100' }}
+          >
+            <Icon as={FaFacebook} mr={2} />
+            <Text fontSize="sm">Continue with Facebook</Text>
+          </Flex>
+        </VStack>
+
+        {/* Signup Link */}
+        <Flex justify="center" mt={6}>
+          <Text fontSize="sm" color={textColor}>
+            Don't have an account?{' '}
+            <ChakraLink
+              as={RouterLink}
+              to="/register"
+              color={accentColor}
+              fontWeight="semibold"
+              _hover={{ textDecoration: 'underline' }}
+            >
+              Sign up
+            </ChakraLink>
+          </Text>
+        </Flex>
+      </Box>
+    </Flex>
   );
 };
 
