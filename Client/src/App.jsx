@@ -13,6 +13,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/404';
 import ProtectedRoute from './components/ui/ProtectedRoute';
+import About from './pages/About';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Contact from './pages/Contact';
 
 const theme = extendTheme({
   colors: {
@@ -57,6 +61,10 @@ function App() {
                 }
               />
               <Route path="*" element={<NotFound />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy" element={<Privacy />} />
             </Routes>
           </Layout>
         </MemeProvider>

@@ -1,246 +1,191 @@
-import { useState, useRef } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { createMeme } from '../../api/memes';
-import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  Textarea,
-  useToast,
-  Image,
-  Text,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-} from '@chakra-ui/react';
+import { useEffect, useRef, useState } from 'react';
+import * as fabric from 'fabric';
+import { ArrowUpTrayIcon, ArrowDownTrayIcon, FaceSmileIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-const MemeCreator = () => {
-  const { user } = useAuth();
-  const toast = useToast();
-  const fileInputRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [memeData, setMemeData] = useState({
-    image: null,
-    topText: '',
-    bottomText: '',
-    font: 'impact',
-    fontSize: 40,
-    textColor: '#ffffff',
-    tags: '',
-  });
-  const [preview, setPreview] = useState(null);
+const MemeCreator = ({ onSave }) => {
+  const canvasRef = useRef(null);
+  const [canvas, setCanvas] = useState(null);
+  const [image, setImage] = useState(null);
+  const [topText, setTopText] = useState('');
+  const [bottomText, setBottomText] = useState('');
+  const [textColor, setTextColor] = useState('#ffffff');
+  const [fontSize, setFontSize] = useState(40);
+  const [fontFamily, setFontFamily] = useState('Impact');
 
-  const handleFileChange = (e) => {
+  // Initialize canvas
+  useEffect(() => {
+    const canvas = new fabric.Canvas(canvasRef.current, {
+      width: 500,
+      height: 500,
+      backgroundColor: '#f3f4f6',
+    });
+    setCanvas(canvas);
+
+    return () => {
+      canvas.dispose();
+    };
+  }, []);
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setMemeData({ ...memeData, image: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      fabric.Image.fromURL(event.target.result, (img) => {
+        canvas.clear();
+        img.scaleToWidth(canvas.width);
+        img.scaleToHeight(canvas.height);
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+        setImage(img);
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) return;
+  // Add text to canvas
+  const addText = (text, position) => {
+    if (!canvas || !text.trim()) return;
 
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append('image', memeData.image);
-    formData.append('topText', memeData.topText);
-    formData.append('bottomText', memeData.bottomText);
-    formData.append('font', memeData.font);
-    formData.append('fontSize', memeData.fontSize);
-    formData.append('textColor', memeData.textColor);
-    formData.append('tags', memeData.tags);
+    const textObj = new fabric.Text(text, {
+      left: canvas.width / 2,
+      top: position === 'top' ? 20 : canvas.height - 50,
+      fill: textColor,
+      fontSize: parseInt(fontSize),
+      fontFamily,
+      originX: 'center',
+      originY: position === 'top' ? 'top' : 'bottom',
+      textAlign: 'center',
+      shadow: '2px 2px 4px rgba(0,0,0,0.5)',
+    });
 
-    try {
-      await createMeme(formData);
-      toast({
-        title: 'Meme created!',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      // Reset form
-      setMemeData({
-        image: null,
-        topText: '',
-        bottomText: '',
-        font: 'impact',
-        fontSize: 40,
-        textColor: '#ffffff',
-        tags: '',
-      });
-      setPreview(null);
-    } catch (error) {
-      toast({
-        title: 'Failed to create meme',
-        description: error.response?.data?.message || 'Something went wrong',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    canvas.add(textObj);
+    canvas.renderAll();
+  };
+
+  // Save meme
+  const handleSave = () => {
+    if (!canvas) return;
+    const dataURL = canvas.toDataURL({
+      format: 'png',
+      quality: 0.8,
+    });
+    onSave(dataURL);
   };
 
   return (
-    <Box>
-      <Flex direction={{ base: 'column', md: 'row' }} gap={8}>
-        <Box flex={1}>
-          <FormControl mb={4}>
-            <FormLabel>Upload Image</FormLabel>
-            <Input
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex-1">
+          <canvas ref={canvasRef} className="border border-gray-300 rounded-md" />
+        </div>
+        
+        <div className="flex-1 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
+            <input
               type="file"
               accept="image/*"
-              onChange={handleFileChange}
-              ref={fileInputRef}
+              onChange={handleImageUpload}
+              className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
             />
-          </FormControl>
+          </div>
 
-          <FormControl mb={4}>
-            <FormLabel>Top Text</FormLabel>
-            <Textarea
-              value={memeData.topText}
-              onChange={(e) =>
-                setMemeData({ ...memeData, topText: e.target.value })
-              }
-            />
-          </FormControl>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Top Text</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={topText}
+                onChange={(e) => setTopText(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Enter top text"
+              />
+              <button
+                onClick={() => addText(topText, 'top')}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                Add
+              </button>
+            </div>
+          </div>
 
-          <FormControl mb={4}>
-            <FormLabel>Bottom Text</FormLabel>
-            <Textarea
-              value={memeData.bottomText}
-              onChange={(e) =>
-                setMemeData({ ...memeData, bottomText: e.target.value })
-              }
-            />
-          </FormControl>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Bottom Text</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={bottomText}
+                onChange={(e) => setBottomText(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Enter bottom text"
+              />
+              <button
+                onClick={() => addText(bottomText, 'bottom')}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                Add
+              </button>
+            </div>
+          </div>
 
-          <FormControl mb={4}>
-            <FormLabel>Font</FormLabel>
-            <Select
-              value={memeData.font}
-              onChange={(e) => setMemeData({ ...memeData, font: e.target.value })}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
+              <input
+                type="color"
+                value={textColor}
+                onChange={(e) => setTextColor(e.target.value)}
+                className="w-full h-10"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Font Size</label>
+              <select
+                value={fontSize}
+                onChange={(e) => setFontSize(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                {[20, 30, 40, 50, 60].map((size) => (
+                  <option key={size} value={size}>
+                    {size}px
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Font Family</label>
+            <select
+              value={fontFamily}
+              onChange={(e) => setFontFamily(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
-              <option value="impact">Impact</option>
-              <option value="arial">Arial</option>
-              <option value="verdana">Verdana</option>
-              <option value="comic-sans">Comic Sans</option>
-            </Select>
-          </FormControl>
+              {['Impact', 'Arial', 'Times New Roman', 'Comic Sans MS', 'Verdana'].map((font) => (
+                <option key={font} value={font}>
+                  {font}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <FormControl mb={4}>
-            <FormLabel>Font Size: {memeData.fontSize}px</FormLabel>
-            <Slider
-              min={20}
-              max={80}
-              value={memeData.fontSize}
-              onChange={(value) => setMemeData({ ...memeData, fontSize: value })}
-            >
-              <SliderTrack>
-                <SliderFilledTrack />
-              </SliderTrack>
-              <SliderThumb />
-            </Slider>
-          </FormControl>
-
-          <FormControl mb={4}>
-            <FormLabel>Text Color</FormLabel>
-            <Input
-              type="color"
-              value={memeData.textColor}
-              onChange={(e) =>
-                setMemeData({ ...memeData, textColor: e.target.value })
-              }
-              w="100px"
-              p={0}
-            />
-          </FormControl>
-
-          <FormControl mb={4}>
-            <FormLabel>Tags (comma separated)</FormLabel>
-            <Input
-              value={memeData.tags}
-              onChange={(e) => setMemeData({ ...memeData, tags: e.target.value })}
-              placeholder="funny, dank, relatable"
-            />
-          </FormControl>
-
-          <Button
-            colorScheme="purple"
-            onClick={handleSubmit}
-            isLoading={isLoading}
-            isDisabled={!memeData.image}
+          <button
+            onClick={handleSave}
+            className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 flex items-center justify-center gap-2"
           >
-            Create Meme
-          </Button>
-        </Box>
-
-        <Box flex={1}>
-          <Text mb={2} fontWeight="bold">
-            Preview
-          </Text>
-          {preview ? (
-            <Box position="relative" border="1px" borderColor="gray.200" p={2}>
-              <Image src={preview} alt="Meme preview" w="100%" />
-              {memeData.topText && (
-                <Text
-                  position="absolute"
-                  top="10px"
-                  left="0"
-                  right="0"
-                  textAlign="center"
-                  fontFamily={memeData.font}
-                  fontSize={`${memeData.fontSize}px`}
-                  color={memeData.textColor}
-                  textShadow="2px 2px 4px #000000"
-                  p={2}
-                >
-                  {memeData.topText}
-                </Text>
-              )}
-              {memeData.bottomText && (
-                <Text
-                  position="absolute"
-                  bottom="10px"
-                  left="0"
-                  right="0"
-                  textAlign="center"
-                  fontFamily={memeData.font}
-                  fontSize={`${memeData.fontSize}px`}
-                  color={memeData.textColor}
-                  textShadow="2px 2px 4px #000000"
-                  p={2}
-                >
-                  {memeData.bottomText}
-                </Text>
-              )}
-            </Box>
-          ) : (
-            <Box
-              border="1px dashed"
-              borderColor="gray.300"
-              p={8}
-              textAlign="center"
-              borderRadius="md"
-            >
-              <Text>Upload an image to see preview</Text>
-            </Box>
-          )}
-        </Box>
-      </Flex>
-    </Box>
+            <ArrowDownTrayIcon className="h-5 w-5" />
+            Save Meme
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
